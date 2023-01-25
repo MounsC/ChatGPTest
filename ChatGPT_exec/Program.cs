@@ -1,13 +1,13 @@
 ﻿using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
 
-string apiKey = "OPENAI_API_KEY";
+string apiKey = "API_KEY";
 string url = "https://api.openai.com/v1/completions";
 
 while (true)
 {
     Console.WriteLine("___________________");
-    Console.Write("Question : "); // bof
+    Console.Write("Question : ");
     string input = Console.ReadLine();
 
     if (input.ToLower() == "exit")
@@ -19,21 +19,20 @@ while (true)
     {
         model = "text-davinci-003",
         prompt = input,
-        temperature = 0.5, // maxValue = 2, 2 = AI works like a drunk guy
+        temperature = 0.5,
         max_tokens = 1024,
-        stop = "",
-    }; // tricky but ok
+    };
 
     using (var client = new HttpClient())
     {
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
-        var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-        var response = client.PostAsync(url, content).Result;
-        var responseString = response.Content.ReadAsStringAsync().Result;
+        var content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(url, content);
+        var responseString = await response.Content.ReadAsStringAsync();
 
-        dynamic json = JsonConvert.DeserializeObject(responseString);
+        ChatResponse json = JsonSerializer.Deserialize<ChatResponse>(responseString);
 
-        Console.WriteLine(json.choices[0].text);
+        Console.WriteLine(json.Choices[0].Text);
     }
 }
